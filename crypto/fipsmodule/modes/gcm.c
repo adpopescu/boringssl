@@ -173,8 +173,8 @@ static void gcm_gmult_4bit(uint64_t Xi[2], const u128 Htable[16]) {
     Z.lo ^= Htable[nlo].lo;
   }
 
-  Xi[0] = CRYPTO_bswap8(Z.hi);
-  Xi[1] = CRYPTO_bswap8(Z.lo);
+  Xi[0] = CRYPTO_BSWAP8(Z.hi);
+  Xi[1] = CRYPTO_BSWAP8(Z.lo);
 }
 
 // Streamed gcm_mult_4bit, see CRYPTO_gcm128_[en|de]crypt for
@@ -233,8 +233,8 @@ static void gcm_ghash_4bit(uint64_t Xi[2], const u128 Htable[16],
       Z.lo ^= Htable[nlo].lo;
     }
 
-    Xi[0] = CRYPTO_bswap8(Z.hi);
-    Xi[1] = CRYPTO_bswap8(Z.lo);
+    Xi[0] = CRYPTO_BSWAP8(Z.hi);
+    Xi[1] = CRYPTO_BSWAP8(Z.lo);
   } while (inp += 16, len -= 16);
 }
 #else  // GHASH_ASM
@@ -358,8 +358,8 @@ void CRYPTO_ghash_init(gmult_func *out_mult, ghash_func *out_hash,
   OPENSSL_memcpy(H.c, gcm_key, 16);
 
   // H is stored in host byte order
-  H.u[0] = CRYPTO_bswap8(H.u[0]);
-  H.u[1] = CRYPTO_bswap8(H.u[1]);
+  H.u[0] = CRYPTO_BSWAP8(H.u[0]);
+  H.u[1] = CRYPTO_BSWAP8(H.u[1]);
 
   OPENSSL_memcpy(out_key, H.c, 16);
 
@@ -471,15 +471,15 @@ void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const void *key,
       GCM_MUL(ctx, Yi);
     }
     len0 <<= 3;
-    ctx->Yi.u[1] ^= CRYPTO_bswap8(len0);
+    ctx->Yi.u[1] ^= CRYPTO_BSWAP8(len0);
 
     GCM_MUL(ctx, Yi);
-    ctr = CRYPTO_bswap4(ctx->Yi.d[3]);
+    ctr = CRYPTO_BSWAP4(ctx->Yi.d[3]);
   }
 
   (*ctx->block)(ctx->Yi.c, ctx->EK0.c, key);
   ++ctr;
-  ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+  ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
 }
 
 int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const uint8_t *aad, size_t len) {
@@ -575,7 +575,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
     ctx->ares = 0;
   }
 
-  ctr = CRYPTO_bswap4(ctx->Yi.d[3]);
+  ctr = CRYPTO_BSWAP4(ctx->Yi.d[3]);
 
   n = ctx->mres;
   if (n) {
@@ -597,7 +597,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
       if (n == 0) {
         (*block)(ctx->Yi.c, ctx->EKi.c, key);
         ++ctr;
-        ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+        ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       }
       ctx->Xi.c[n] ^= out[i] = in[i] ^ ctx->EKi.c[n];
       n = (n + 1) % 16;
@@ -616,7 +616,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
     while (j) {
       (*block)(ctx->Yi.c, ctx->EKi.c, key);
       ++ctr;
-      ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+      ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       for (size_t i = 0; i < 16; i += sizeof(size_t)) {
         store_word_le(out + i,
                       load_word_le(in + i) ^ ctx->EKi.t[i / sizeof(size_t)]);
@@ -633,7 +633,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
     while (len >= 16) {
       (*block)(ctx->Yi.c, ctx->EKi.c, key);
       ++ctr;
-      ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+      ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       for (size_t i = 0; i < 16; i += sizeof(size_t)) {
         store_word_le(out + i,
                       load_word_le(in + i) ^ ctx->EKi.t[i / sizeof(size_t)]);
@@ -648,7 +648,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
   while (len >= 16) {
     (*block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     for (size_t i = 0; i < 16; i += sizeof(size_t)) {
       size_t tmp = load_word_le(in + i) ^ ctx->EKi.t[i / sizeof(size_t)];
       store_word_le(out + i, tmp);
@@ -663,7 +663,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx, const void *key,
   if (len) {
     (*block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     while (len--) {
       ctx->Xi.c[n] ^= out[n] = in[n] ^ ctx->EKi.c[n];
       ++n;
@@ -701,7 +701,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
     ctx->ares = 0;
   }
 
-  ctr = CRYPTO_bswap4(ctx->Yi.d[3]);
+  ctr = CRYPTO_BSWAP4(ctx->Yi.d[3]);
 
   n = ctx->mres;
   if (n) {
@@ -726,7 +726,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
       if (n == 0) {
         (*block)(ctx->Yi.c, ctx->EKi.c, key);
         ++ctr;
-        ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+        ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       }
       c = in[i];
       out[i] = c ^ ctx->EKi.c[n];
@@ -748,7 +748,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
     while (j) {
       (*block)(ctx->Yi.c, ctx->EKi.c, key);
       ++ctr;
-      ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+      ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       for (size_t i = 0; i < 16; i += sizeof(size_t)) {
         store_word_le(out + i,
                       load_word_le(in + i) ^ ctx->EKi.t[i / sizeof(size_t)]);
@@ -765,7 +765,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
     while (len >= 16) {
       (*block)(ctx->Yi.c, ctx->EKi.c, key);
       ++ctr;
-      ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+      ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
       for (size_t i = 0; i < 16; i += sizeof(size_t)) {
         store_word_le(out + i,
                       load_word_le(in + i) ^ ctx->EKi.t[i / sizeof(size_t)]);
@@ -779,7 +779,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
   while (len >= 16) {
     (*block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     for (size_t i = 0; i < 16; i += sizeof(size_t)) {
       size_t c = load_word_le(in + i);
       store_word_le(out + i, c ^ ctx->EKi.t[i / sizeof(size_t)]);
@@ -794,7 +794,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx, const void *key,
   if (len) {
     (*block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     while (len--) {
       uint8_t c = in[n];
       ctx->Xi.c[n] ^= c;
@@ -859,13 +859,13 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
   }
 #endif
 
-  ctr = CRYPTO_bswap4(ctx->Yi.d[3]);
+  ctr = CRYPTO_BSWAP4(ctx->Yi.d[3]);
 
 #if defined(GHASH)
   while (len >= GHASH_CHUNK) {
     (*stream)(in, out, GHASH_CHUNK / 16, key, ctx->Yi.c);
     ctr += GHASH_CHUNK / 16;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     GHASH(ctx, out, GHASH_CHUNK);
     out += GHASH_CHUNK;
     in += GHASH_CHUNK;
@@ -878,7 +878,7 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
 
     (*stream)(in, out, j, key, ctx->Yi.c);
     ctr += (unsigned int)j;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     in += i;
     len -= i;
 #if defined(GHASH)
@@ -897,7 +897,7 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
   if (len) {
     (*ctx->block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     while (len--) {
       ctx->Xi.c[n] ^= out[n] = in[n] ^ ctx->EKi.c[n];
       ++n;
@@ -962,14 +962,14 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
   }
 #endif
 
-  ctr = CRYPTO_bswap4(ctx->Yi.d[3]);
+  ctr = CRYPTO_BSWAP4(ctx->Yi.d[3]);
 
 #if defined(GHASH)
   while (len >= GHASH_CHUNK) {
     GHASH(ctx, in, GHASH_CHUNK);
     (*stream)(in, out, GHASH_CHUNK / 16, key, ctx->Yi.c);
     ctr += GHASH_CHUNK / 16;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     out += GHASH_CHUNK;
     in += GHASH_CHUNK;
     len -= GHASH_CHUNK;
@@ -995,7 +995,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
 #endif
     (*stream)(in, out, j, key, ctx->Yi.c);
     ctr += (unsigned int)j;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     out += i;
     in += i;
     len -= i;
@@ -1003,7 +1003,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx, const void *key,
   if (len) {
     (*ctx->block)(ctx->Yi.c, ctx->EKi.c, key);
     ++ctr;
-    ctx->Yi.d[3] = CRYPTO_bswap4(ctr);
+    ctx->Yi.d[3] = CRYPTO_BSWAP4(ctr);
     while (len--) {
       uint8_t c = in[n];
       ctx->Xi.c[n] ^= c;
@@ -1027,8 +1027,8 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const uint8_t *tag, size_t len) {
     GCM_MUL(ctx, Xi);
   }
 
-  alen = CRYPTO_bswap8(alen);
-  clen = CRYPTO_bswap8(clen);
+  alen = CRYPTO_BSWAP8(alen);
+  clen = CRYPTO_BSWAP8(clen);
 
   ctx->Xi.u[0] ^= alen;
   ctx->Xi.u[1] ^= clen;

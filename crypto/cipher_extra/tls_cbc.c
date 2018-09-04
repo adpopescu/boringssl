@@ -184,26 +184,18 @@ void EVP_tls_cbc_copy_mac(uint8_t *out, size_t md_size, const uint8_t *in,
 
 // u32toBE serialises an unsigned, 32-bit number (n) as four bytes at (p) in
 // big-endian order. The value of p is advanced by four.
-#define u32toBE(n, p)                \
-  do {                               \
-    *((p)++) = (uint8_t)((n) >> 24); \
-    *((p)++) = (uint8_t)((n) >> 16); \
-    *((p)++) = (uint8_t)((n) >> 8);  \
-    *((p)++) = (uint8_t)((n));       \
+#define u32toBE(n, p)                    \
+  do {                                   \
+    *(uint32_t *)(p) = CRYPTO_BSWAP4(n); \
+    p += sizeof(uint32_t);               \
   } while (0)
 
 // u64toBE serialises an unsigned, 64-bit number (n) as eight bytes at (p) in
 // big-endian order. The value of p is advanced by eight.
-#define u64toBE(n, p)                \
-  do {                               \
-    *((p)++) = (uint8_t)((n) >> 56); \
-    *((p)++) = (uint8_t)((n) >> 48); \
-    *((p)++) = (uint8_t)((n) >> 40); \
-    *((p)++) = (uint8_t)((n) >> 32); \
-    *((p)++) = (uint8_t)((n) >> 24); \
-    *((p)++) = (uint8_t)((n) >> 16); \
-    *((p)++) = (uint8_t)((n) >> 8);  \
-    *((p)++) = (uint8_t)((n));       \
+#define u64toBE(n, p)                    \
+  do {                                   \
+    *(uint64_t *)(p) = CRYPTO_BSWAP8(n); \
+    p += sizeof(uint64_t);               \
   } while (0)
 
 typedef union {
