@@ -673,7 +673,7 @@ static inline uint64_t CRYPTO_bswap8(uint64_t x) {
    (uint64_t)BSWAP_32_BITOP((uint64_t)(x) >> 32))
 #if defined(OPENSSL_64_BIT)
 #define BSWAP_ULONG(x) BSWAP_64(x)
-#elif define(OPENSSL_32_BIT)
+#elif defined(OPENSSL_32_BIT)
 #define BSWAP_ULONG(x) BSWAP_32(x)
 #else
 #error "Must define either OPENSSL_32_BIT or OPENSSL_64_BIT"
