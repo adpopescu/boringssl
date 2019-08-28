@@ -897,7 +897,7 @@ func doExchange(test *testCase, config *Config, conn net.Conn, isResume bool, tr
 		if _, err := io.ReadFull(tlsConn, secretLenBytes); err != nil {
 			return err
 		}
-		secretLen := binary.LittleEndian.Uint16(secretLenBytes)
+		secretLen := binary.BigEndian.Uint16(secretLenBytes)
 
 		theirReadSecret := make([]byte, secretLen)
 		theirWriteSecret := make([]byte, secretLen)
