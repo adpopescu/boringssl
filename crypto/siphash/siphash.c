@@ -40,8 +40,8 @@ uint64_t SIPHASH_24(const uint64_t key[2], const uint8_t *input,
                     size_t input_len) {
   const size_t orig_input_len = input_len;
 
-  uint64_t k0 = CRYPTO_bswap8(key[0]);
-  uint64_t k1 = CRYPTO_bswap8(key[1]);
+  uint64_t k0 = BSWAP_64(key[0]);
+  uint64_t k1 = BSWAP_64(key[1]);
 
   uint64_t v[4];
   v[0] = k0 ^ UINT64_C(0x736f6d6570736575);
@@ -52,7 +52,7 @@ uint64_t SIPHASH_24(const uint64_t key[2], const uint8_t *input,
   while (input_len >= sizeof(uint64_t)) {
     uint64_t m;
     memcpy(&m, input, sizeof(m));
-    m = CRYPTO_bswap8(m); //SHS
+    m = BSWAP_64(m);
     v[3] ^= m;
     siphash_round(v);
     siphash_round(v);
@@ -69,7 +69,7 @@ uint64_t SIPHASH_24(const uint64_t key[2], const uint8_t *input,
   last_block.word = 0;
   memcpy(last_block.bytes, input, input_len);
   last_block.bytes[7] = orig_input_len & 0xff;
-  last_block.word = CRYPTO_bswap8(last_block.word);
+  last_block.word = BSWAP_64(last_block.word);
 
   v[3] ^= last_block.word;
   siphash_round(v);

@@ -55,8 +55,8 @@ TEST(SipHash, Vectors) {
     uint64_t key_words[2];
     memcpy(key_words, key.data(), key.size());
     uint64_t result = SIPHASH_24(key_words, msg.data(), msg.size());
-    uint64_t newresult = CRYPTO_bswap8(result);
-    EXPECT_EQ(Bytes(reinterpret_cast<uint8_t *>(&newresult), sizeof(newresult)),
+    result = BSWAP_64(result);
+    EXPECT_EQ(Bytes(reinterpret_cast<uint8_t *>(&result), sizeof(result)),
               Bytes(hash));
   });
 }
