@@ -272,7 +272,7 @@ int SHA512_Final(uint8_t out[SHA512_DIGEST_LENGTH], SHA512_CTX *sha) {
   assert(sha->md_len % 8 == 0);
   const size_t out_words = sha->md_len / 8;
   for (size_t i = 0; i < out_words; i++) {
-    const uint64_t t = CRYPTO_bswap8(sha->h[i]);
+    const uint64_t t = CRYPTO_BSWAP8(sha->h[i]);
     memcpy(out, &t, sizeof(t));
     out += sizeof(t);
   }

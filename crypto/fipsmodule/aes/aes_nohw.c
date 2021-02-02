@@ -348,8 +348,8 @@ static inline void aes_nohw_compact_block(aes_word_t out[AES_NOHW_BLOCK_WORDS],
 #if defined(OPENSSL_SSE2)
   // No conversions needed.
 #elif defined(OPENSSL_64_BIT)
-  uint64_t a0 = aes_nohw_compact_word(out[0]);
-  uint64_t a1 = aes_nohw_compact_word(out[1]);
+  uint64_t a0 = aes_nohw_compact_word(BSWAP_64(out[0]));
+  uint64_t a1 = aes_nohw_compact_word(BSWAP_64(out[1]));
   out[0] = (a0 & UINT64_C(0x00000000ffffffff)) | (a1 << 32);
   out[1] = (a1 & UINT64_C(0xffffffff00000000)) | (a0 >> 32);
 #else
@@ -377,9 +377,9 @@ static inline void aes_nohw_uncompact_block(
   uint64_t a0 = in[0];
   uint64_t a1 = in[1];
   uint64_t b0 =
-      aes_nohw_uncompact_word((a0 & UINT64_C(0x00000000ffffffff)) | (a1 << 32));
+      BSWAP_64(aes_nohw_uncompact_word((a0 & UINT64_C(0x00000000ffffffff)) | (a1 << 32)));
   uint64_t b1 =
-      aes_nohw_uncompact_word((a1 & UINT64_C(0xffffffff00000000)) | (a0 >> 32));
+      BSWAP_64(aes_nohw_uncompact_word((a1 & UINT64_C(0xffffffff00000000)) | (a0 >> 32)));
   memcpy(out, &b0, 8);
   memcpy(out + 8, &b1, 8);
 #else
@@ -1189,11 +1189,11 @@ void aes_nohw_ctr32_encrypt_blocks(const uint8_t *in, uint8_t *out,
     memcpy(ivs.u8 + 16 * i, ivec, 16);
   }
 
-  uint32_t ctr = CRYPTO_bswap4(ivs.u32[3]);
+  uint32_t ctr = CRYPTO_BSWAP4(ivs.u32[3]);
   for (;;) {
     // Update counters.
     for (size_t i = 0; i < AES_NOHW_BATCH_SIZE; i++) {
-      ivs.u32[4 * i + 3] = CRYPTO_bswap4(ctr + i);
+      ivs.u32[4 * i + 3] = CRYPTO_BSWAP4(ctr + i);
     }
 
     size_t todo = blocks >= AES_NOHW_BATCH_SIZE ? AES_NOHW_BATCH_SIZE : blocks;

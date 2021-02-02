@@ -245,7 +245,7 @@ static int map_to_curve_simple_swu(const EC_GROUP *group, const EC_FELEM *Z,
       group->meth->felem_sqr;
 
   // This function requires the prime be 3 mod 4, and that A = -3.
-  if (group->field.width == 0 || (group->field.d[0] & 3) != 3 ||
+  if (group->field.width == 0 || (BSWAP_64(group->field.d[0]) & 3) != 3 ||
       !group->a_is_minus3) {
     OPENSSL_PUT_ERROR(EC, ERR_R_INTERNAL_ERROR);
     return 0;

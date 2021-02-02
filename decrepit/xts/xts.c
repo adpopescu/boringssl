@@ -53,7 +53,7 @@
 #include <openssl/aes.h>
 #include <openssl/cipher.h>
 
-#include "../crypto/fipsmodule/modes/internal.h"
+#include "../../crypto/fipsmodule/modes/internal.h"
 
 
 typedef struct xts128_context {
@@ -95,10 +95,10 @@ static size_t CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
 
     unsigned int carry, res;
 
-    res = 0x87 & (((int)tweak.d[3]) >> 31);
-    carry = (unsigned int)(tweak.u[0] >> 63);
-    tweak.u[0] = (tweak.u[0] << 1) ^ res;
-    tweak.u[1] = (tweak.u[1] << 1) | carry;
+    res = 0x87 & (((int)BSWAP_32(tweak.d[3])) >> 31);
+    carry = (unsigned int)(BSWAP_64(tweak.u[0]) >> 63);
+    tweak.u[0] = BSWAP_64(BSWAP_64(tweak.u[0]) << 1) ^ BSWAP_64(res);
+    tweak.u[1] = BSWAP_64(BSWAP_64(tweak.u[1]) << 1) | BSWAP_64(carry);
   }
   if (enc) {
     for (i = 0; i < len; ++i) {
@@ -120,10 +120,10 @@ static size_t CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
 
     unsigned int carry, res;
 
-    res = 0x87 & (((int)tweak.d[3]) >> 31);
-    carry = (unsigned int)(tweak.u[0] >> 63);
-    tweak1.u[0] = (tweak.u[0] << 1) ^ res;
-    tweak1.u[1] = (tweak.u[1] << 1) | carry;
+    res = 0x87 & (((int)BSWAP_32(tweak.d[3])) >> 31);
+    carry = (unsigned int)(BSWAP_64(tweak.u[0]) >> 63);
+    tweak1.u[0] = BSWAP_64(BSWAP_64(tweak.u[0]) << 1) ^ BSWAP_64(res);
+    tweak1.u[1] = BSWAP_64(BSWAP_64(tweak.u[1]) << 1) | BSWAP_64(carry);
     OPENSSL_memcpy(scratch.c, inp, 16);
     scratch.u[0] ^= tweak1.u[0];
     scratch.u[1] ^= tweak1.u[1];

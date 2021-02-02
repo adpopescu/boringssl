@@ -144,7 +144,8 @@ static BN_ULONG bn_sub_part_words(BN_ULONG *r, const BN_ULONG *a,
     // in |a| were zeros.
     dl = -dl;
     for (int i = 0; i < dl; i++) {
-      r[i] = 0u - b[i] - borrow;
+      BN_ULONG tmp = BSWAP_ULONG(b[i]);
+      r[i] = BSWAP_ULONG(0u - tmp - borrow);
       borrow |= r[i] != 0;
     }
   } else {
@@ -152,9 +153,9 @@ static BN_ULONG bn_sub_part_words(BN_ULONG *r, const BN_ULONG *a,
     // in |b| were zeros.
     for (int i = 0; i < dl; i++) {
       // |r| and |a| may alias, so use a temporary.
-      BN_ULONG tmp = a[i];
-      r[i] = a[i] - borrow;
-      borrow = tmp < r[i];
+      BN_ULONG tmp = BSWAP_ULONG(a[i]);
+      r[i] = BSWAP_ULONG(tmp - borrow);
+      borrow = tmp < BSWAP_ULONG(r[i]);
     }
   }
 

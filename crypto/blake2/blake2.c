@@ -80,14 +80,14 @@ static void blake2b_transform(
 
   for (int round = 0; round < 12; round++) {
     const uint8_t *const s = &kSigma[16 * (round % 10)];
-    blake2b_mix(v, 0, 4, 8, 12, block_words[s[0]], block_words[s[1]]);
-    blake2b_mix(v, 1, 5, 9, 13, block_words[s[2]], block_words[s[3]]);
-    blake2b_mix(v, 2, 6, 10, 14, block_words[s[4]], block_words[s[5]]);
-    blake2b_mix(v, 3, 7, 11, 15, block_words[s[6]], block_words[s[7]]);
-    blake2b_mix(v, 0, 5, 10, 15, block_words[s[8]], block_words[s[9]]);
-    blake2b_mix(v, 1, 6, 11, 12, block_words[s[10]], block_words[s[11]]);
-    blake2b_mix(v, 2, 7, 8, 13, block_words[s[12]], block_words[s[13]]);
-    blake2b_mix(v, 3, 4, 9, 14, block_words[s[14]], block_words[s[15]]);
+    blake2b_mix(v, 0, 4, 8, 12, BSWAP_64(block_words[s[0]]), BSWAP_64(block_words[s[1]]));
+    blake2b_mix(v, 1, 5, 9, 13, BSWAP_64(block_words[s[2]]), BSWAP_64(block_words[s[3]]));
+    blake2b_mix(v, 2, 6, 10, 14, BSWAP_64(block_words[s[4]]), BSWAP_64(block_words[s[5]]));
+    blake2b_mix(v, 3, 7, 11, 15, BSWAP_64(block_words[s[6]]), BSWAP_64(block_words[s[7]]));
+    blake2b_mix(v, 0, 5, 10, 15, BSWAP_64(block_words[s[8]]), BSWAP_64(block_words[s[9]]));
+    blake2b_mix(v, 1, 6, 11, 12, BSWAP_64(block_words[s[10]]), BSWAP_64(block_words[s[11]]));
+    blake2b_mix(v, 2, 7, 8, 13, BSWAP_64(block_words[s[12]]), BSWAP_64(block_words[s[13]]));
+    blake2b_mix(v, 3, 4, 9, 14, BSWAP_64(block_words[s[14]]), BSWAP_64(block_words[s[15]]));
   }
 
   for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(b2b->h); i++) {
@@ -146,7 +146,11 @@ void BLAKE2B256_Final(uint8_t out[BLAKE2B256_DIGEST_LENGTH], BLAKE2B_CTX *b2b) {
   blake2b_transform(b2b, b2b->block.words, b2b->block_used,
                     /*is_final_block=*/1);
   OPENSSL_STATIC_ASSERT(BLAKE2B256_DIGEST_LENGTH <= sizeof(b2b->h), "");
-  memcpy(out, b2b->h, BLAKE2B256_DIGEST_LENGTH);
+  uint64_t tmp[BLAKE2B256_DIGEST_LENGTH/8];
+  for (int i = 0; i < BLAKE2B256_DIGEST_LENGTH/8; i++) {
+    tmp[i] = BSWAP_64(b2b->h[i]);
+  }
+  memcpy(out, tmp, BLAKE2B256_DIGEST_LENGTH);
 }
 
 void BLAKE2B256(const uint8_t *data, size_t len,

@@ -537,7 +537,7 @@ int CBB_add_asn1_int64(CBB *cbb, int64_t value) {
     int64_t i;
     uint8_t bytes[sizeof(int64_t)];
   } u;
-  u.i = value;
+  u.i = BSWAP_64(value);
   int start = 7;
   // Skip leading sign-extension bytes unless they are necessary.
   while (start > 0 && (u.bytes[start] == 0xff && (u.bytes[start - 1] & 0x80))) {

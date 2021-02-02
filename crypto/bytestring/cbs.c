@@ -482,7 +482,7 @@ int CBS_get_asn1_int64(CBS *cbs, int64_t *out) {
   for (size_t i = 0; i < len; i++) {
     u.bytes[i] = data[len - i - 1];
   }
-  *out = u.i;
+  *out = BSWAP_64(u.i);
   return 1;
 }
 
