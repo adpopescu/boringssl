@@ -1,4 +1,4 @@
-	.type foo, %function
+}}}	.type foo, %function
 	.globl foo
 foo:
 	// GOT load

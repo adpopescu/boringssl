@@ -150,7 +150,7 @@ void BN_clear(BIGNUM *bn) {
 }
 
 DEFINE_METHOD_FUNCTION(BIGNUM, BN_value_one) {
-  static const BN_ULONG kOneLimbs[1] = { 1 };
+  static const BN_ULONG kOneLimbs[1] = { BSWAP_64_BITOP(1) };
   out->d = (BN_ULONG*) kOneLimbs;
   out->width = 1;
   out->dmax = 1;
@@ -219,7 +219,8 @@ unsigned BN_num_bits(const BIGNUM *bn) {
     return 0;
   }
 
-  return (width - 1) * BN_BITS2 + BN_num_bits_word(bn->d[width - 1]);
+  return
+    (width - 1) * BN_BITS2 + BN_num_bits_word(BSWAP_ULONG(bn->d[width - 1]));
 }
 
 unsigned BN_num_bytes(const BIGNUM *bn) {
@@ -245,7 +246,7 @@ int BN_set_word(BIGNUM *bn, BN_ULONG value) {
   }
 
   bn->neg = 0;
-  bn->d[0] = value;
+  bn->d[0] = BSWAP_ULONG(value);
   bn->width = 1;
   return 1;
 }
@@ -263,8 +264,8 @@ int BN_set_u64(BIGNUM *bn, uint64_t value) {
   }
 
   bn->neg = 0;
-  bn->d[0] = (BN_ULONG)value;
-  bn->d[1] = (BN_ULONG)(value >> 32);
+  bn->d[0] = BSWAP_ULONG((BN_ULONG)value);
+  bn->d[1] = BSWAP_ULONG((BN_ULONG)(value >> 32));
   bn->width = 2;
   return 1;
 #else
@@ -299,7 +300,7 @@ int bn_fits_in_words(const BIGNUM *bn, size_t num) {
   // All words beyond |num| must be zero.
   BN_ULONG mask = 0;
   for (size_t i = num; i < (size_t)bn->width; i++) {
-    mask |= bn->d[i];
+    mask |= BSWAP_ULONG(bn->d[i]);
   }
   return mask == 0;
 }
@@ -417,14 +418,16 @@ void bn_select_words(BN_ULONG *r, BN_ULONG mask, const BN_ULONG *a,
                      const BN_ULONG *b, size_t num) {
   for (size_t i = 0; i < num; i++) {
     OPENSSL_STATIC_ASSERT(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
-                          "crypto_word_t is too small");
-    r[i] = constant_time_select_w(mask, a[i], b[i]);
+                           "crypto_word_t is too small");
+    r[i] = BSWAP_ULONG(constant_time_select_w(mask,
+					      BSWAP_ULONG(a[i]),
+					      BSWAP_ULONG(b[i])));
   }
 }
 
 int bn_minimal_width(const BIGNUM *bn) {
   int ret = bn->width;
-  while (ret > 0 && bn->d[ret - 1] == 0) {
+  while (ret > 0 && BSWAP_ULONG(bn->d[ret - 1]) == 0) {
     ret--;
   }
   return ret;
